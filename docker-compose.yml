@@ -1,0 +1,13 @@
+version: "3"
+services:
+  worker:
+    restart: always
+    build: .
+    ports:
+      - "3200:3200"
+    environment:
+      APP_DB_PATH: db.sqlite
+      APP_DB_RESETONSTART: 1
+      APP_SERVER_PORT: ":3200"
+      APP_SERVER_URL: "http://localhost:3200"
+      APP_SERVER_CORS: "*"
