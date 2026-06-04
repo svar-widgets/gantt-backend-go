@@ -13,6 +13,7 @@ type TasksDAO struct {
 
 type TaskUpdate struct {
 	Text     string          `json:"text"`
+	Details  string          `json:"details"`
 	Start    *common.JDate   `json:"start"`
 	End      *common.JDate   `json:"end"`
 	Duration int             `json:"duration"`
@@ -22,13 +23,19 @@ type TaskUpdate struct {
 	Lazy     bool            `json:"lazy"`
 }
 
-type UpdatePayload struct {
+type TaskUpdatePayload struct {
 	TaskUpdate
 
 	Operation string `json:"operation"`
 	Target    int    `json:"target"`
 	Mode      string `json:"mode"`
-	Nested    bool   `json:"nested"`
+}
+
+type TaskAddPayload struct {
+	Task TaskUpdate `json:"task"`
+
+	Target int    `json:"target"`
+	Mode   string `json:"mode"`
 }
 
 func NewTasksDAO(db *gorm.DB) *TasksDAO {
@@ -56,9 +63,9 @@ func (d *TasksDAO) GetBranch(id int) ([]Task, error) {
 	return d.getBranch(nil, id)
 }
 
-func (d *TasksDAO) Add(data TaskUpdate) (int, error) {
+func (d *TasksDAO) Add(data TaskAddPayload) (int, error) {
 	task := Task{}
-	data.fillModel(&task)
+	data.Task.fillModel(&task)
 
 	branch, err := d.getKids(nil, task.Parent)
 	if err != nil {
@@ -71,7 +78,7 @@ func (d *TasksDAO) Add(data TaskUpdate) (int, error) {
 	return task.ID, err
 }
 
-func (d *TasksDAO) Update(id int, data UpdatePayload) error {
+func (d *TasksDAO) Update(id int, data TaskUpdatePayload) error {
 	task, err := d.GetOne(id)
 	if err != nil {
 		return err
@@ -112,7 +119,7 @@ func (d *TasksDAO) Delete(id int) ([]int, error) {
 	return toRemove, err
 }
 
-func (d *TasksDAO) Move(id int, data UpdatePayload) (err error) {
+func (d *TasksDAO) Move(id int, data TaskUpdatePayload) (err error) {
 	task, err := d.GetOne(id)
 	if err != nil {
 		return err
@@ -147,8 +154,8 @@ func (d *TasksDAO) Move(id int, data UpdatePayload) (err error) {
 
 	if data.Mode == "child" {
 		if l > 0 {
-			data.Mode = "before"
-			target = targetBranch[0]
+			data.Mode = "after"
+			target = targetBranch[l-1]
 		}
 	}
 
@@ -170,8 +177,10 @@ func (d *TasksDAO) Move(id int, data UpdatePayload) (err error) {
 			if t.ID == target.ID {
 				if data.Mode == "after" {
 					branchUpd[ind] = t
-					branchUpd[ind+1] = task
-					break
+					ind++
+					branchUpd[ind] = task
+					ind++
+					continue
 				} else {
 					branchUpd[ind] = task
 					ind++
@@ -213,7 +222,7 @@ func (d *TasksDAO) Move(id int, data UpdatePayload) (err error) {
 	return nil
 }
 
-func (d *TasksDAO) Copy(id int, data UpdatePayload) ([]int, []int, error) {
+func (d *TasksDAO) Copy(id int, data TaskUpdatePayload) ([]int, []int, error) {
 	task, err := d.GetOne(id)
 	if err != nil {
 		return nil, nil, err
@@ -243,7 +252,7 @@ func (d *TasksDAO) Copy(id int, data UpdatePayload) ([]int, []int, error) {
 		}
 	}
 
-	ids, nids, err := d.createCopy(nil, task, targetParent, data.Nested)
+	ids, nids, err := d.createCopy(nil, task, targetParent, data.Lazy)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -295,18 +304,21 @@ func (d *TasksDAO) Copy(id int, data UpdatePayload) ([]int, []int, error) {
 	return ids, nids, nil
 }
 
-func (d *TasksDAO) createCopy(tx *gorm.DB, task Task, parent int, nested bool) ([]int, []int, error) {
+func (d *TasksDAO) createCopy(tx *gorm.DB, task Task, parent int, lazy bool) ([]int, []int, error) {
 	ids := make([]int, 0)
 	nids := make([]int, 0)
-	nid, err := d.Add(TaskUpdate{
-		Text:     task.Text,
-		Start:    task.Start,
-		End:      task.End,
-		Duration: task.Duration,
-		Progress: task.Progress,
-		Parent:   common.FuzzyInt(parent),
-		Type:     task.Type,
-		Lazy:     task.Lazy,
+	nid, err := d.Add(TaskAddPayload{
+		Task: TaskUpdate{
+			Text:     task.Text,
+			Details:  task.Details,
+			Start:    task.Start,
+			End:      task.End,
+			Duration: task.Duration,
+			Progress: task.Progress,
+			Parent:   common.FuzzyInt(parent),
+			Type:     task.Type,
+			Lazy:     task.Lazy,
+		},
 	})
 	if err != nil {
 		return nil, nil, err
@@ -314,13 +326,13 @@ func (d *TasksDAO) createCopy(tx *gorm.DB, task Task, parent int, nested bool) (
 	ids = append(ids, task.ID)
 	nids = append(nids, nid)
 
-	if nested {
+	if lazy {
 		kids, err := d.getKids(tx, task.ID)
 		if err != nil {
 			return nil, nil, err
 		}
 		for _, kid := range kids {
-			oids, knids, err := d.createCopy(tx, kid, nid, nested)
+			oids, knids, err := d.createCopy(tx, kid, nid, lazy)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -398,6 +410,7 @@ func (d *TasksDAO) collectChildren(parent int) ([]Task, error) {
 
 func (u *TaskUpdate) fillModel(model *Task) {
 	model.Text = u.Text
+	model.Details = u.Details
 	if u.Start != nil {
 		ts := common.JDate(*u.Start)
 		model.Start = &ts

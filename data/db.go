@@ -24,8 +24,10 @@ type DBConfig struct {
 type DAO struct {
 	db *gorm.DB
 
-	Tasks *TasksDAO
-	Links *LinksDAO
+	Tasks       *TasksDAO
+	Links       *LinksDAO
+	Resources   *ResourcesDAO
+	Assignments *AssignmentsDAO
 }
 
 func (d *DAO) GetDB() *gorm.DB {
@@ -49,11 +51,15 @@ func NewDAO(config DBConfig, url string) *DAO {
 
 	db.AutoMigrate(&Task{})
 	db.AutoMigrate(&Link{})
+	db.AutoMigrate(&Resource{})
+	db.AutoMigrate(&Assignment{})
 
 	dao := &DAO{
-		db:    db,
-		Tasks: NewTasksDAO(db),
-		Links: NewLinksDAO(db),
+		db:          db,
+		Tasks:       NewTasksDAO(db),
+		Links:       NewLinksDAO(db),
+		Resources:   NewResourcesDAO(db),
+		Assignments: NewAssignmentsDAO(db),
 	}
 
 	if config.ResetOnStart {

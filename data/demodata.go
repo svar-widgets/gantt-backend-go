@@ -9,6 +9,8 @@ import (
 func dataDown(d *DAO) {
 	d.mustExec("DELETE from tasks")
 	d.mustExec("DELETE from links")
+	d.mustExec("DELETE from assignments")
+	d.mustExec("DELETE from resources")
 }
 
 func dataUp(d *DAO) (err error) {
@@ -28,6 +30,16 @@ func dataUp(d *DAO) (err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	resources := make([]Resource, 0)
+	err = parseDemodata(&resources, "./demodata/resources.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	assignments := make([]Assignment, 0)
+	err = parseDemodata(&assignments, "./demodata/assignments.json")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	db := d.GetDB()
 	err = db.Create(&tasks).Error
@@ -35,6 +47,14 @@ func dataUp(d *DAO) (err error) {
 		return err
 	}
 	err = db.Create(&links).Error
+	if err != nil {
+		return err
+	}
+	err = db.Create(&resources).Error
+	if err != nil {
+		return err
+	}
+	err = db.Create(&assignments).Error
 
 	return
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -19,9 +20,9 @@ func numberParam(r *http.Request, key string) int {
 	return num
 }
 
-func parseForm(w http.ResponseWriter, r *http.Request, o interface{}) error {
-	body := http.MaxBytesReader(w, r.Body, 1048576)
-	dec := json.NewDecoder(body)
+func parseForm(w http.ResponseWriter, r io.ReadCloser, o interface{}) error {
+	maxBody := http.MaxBytesReader(w, r, 1048576)
+	dec := json.NewDecoder(maxBody)
 	err := dec.Decode(&o)
 
 	return err

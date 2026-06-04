@@ -1,0 +1,40 @@
+[
+  {
+    "id": 100,
+    "name": "Development Team",
+    "parent": 0
+  },
+  {
+    "id": 101,
+    "name": "Laura Turner",
+    "role": "Developer",
+    "color": "#4CAF50",
+    "parent": 100
+  },
+  {
+    "id": 102,
+    "name": "Robert Williams",
+    "role": "Designer",
+    "color": "#2196F3",
+    "parent": 100
+  },
+  {
+    "id": 200,
+    "name": "QA Team",
+    "parent": 0
+  },
+  {
+    "id": 201,
+    "name": "John Doe",
+    "role": "QA Engineer",
+    "color": "#FF9800",
+    "parent": 200
+  },
+  {
+    "id": 202,
+    "name": "Mary Johnson",
+    "role": "QA Lead",
+    "color": "#9C27B0",
+    "parent": 200
+  }
+]

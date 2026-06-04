@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "task": 10,
+    "resource": 101,
+    "units": 100
+  },
+  {
+    "id": 2,
+    "task": 10,
+    "resource": 102,
+    "units": 50
+  },
+  {
+    "id": 3,
+    "task": 11,
+    "resource": 101,
+    "units": 100
+  },
+  {
+    "id": 4,
+    "task": 110,
+    "resource": 102,
+    "units": 100
+  },
+  {
+    "id": 5,
+    "task": 112,
+    "resource": 101,
+    "units": 100
+  },
+  {
+    "id": 6,
+    "task": 20,
+    "resource": 201,
+    "units": 100
+  },
+  {
+    "id": 7,
+    "task": 21,
+    "resource": 201,
+    "units": 100
+  },
+  {
+    "id": 8,
+    "task": 22,
+    "resource": 202,
+    "units": 100
+  },
+  {
+    "id": 9,
+    "task": 30,
+    "resource": 101,
+    "units": 100
+  },
+  {
+    "id": 10,
+    "task": 30,
+    "resource": 102,
+    "units": 100
+  },
+  {
+    "id": 11,
+    "task": 40,
+    "resource": 201,
+    "units": 100
+  },
+  {
+    "id": 12,
+    "task": 41,
+    "resource": 202,
+    "units": 100
+  }
+]

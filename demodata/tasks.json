@@ -4,9 +4,10 @@
     "start": "2024-04-02 00:00:00",
     "end": "2024-04-17 00:00:00",
     "text": "Project planning",
+    "details": "Working out the roadmap, strategy, analyzing demand",
     "progress": 30,
     "parent": 0,
-    "type": "project",
+    "type": "summary",
     "open": true
   },
   {
@@ -14,6 +15,7 @@
     "start": "2024-04-02 00:00:00",
     "end": "2024-04-05 00:00:00",
     "text": "Marketing analysis",
+    "details": "",
     "progress": 100,
     "parent": 1,
     "type": "task"
@@ -23,6 +25,7 @@
     "start": "2024-04-05 00:00:00",
     "end": "2024-04-07 00:00:00",
     "text": "Discussions",
+    "details": "Room 405a",
     "progress": 100,
     "parent": 1,
     "type": "task",
@@ -33,6 +36,7 @@
     "start": "2024-04-06 00:00:00",
     "end": "2024-04-09 00:00:00",
     "text": "Initial design",
+    "details": "",
     "progress": 60,
     "parent": 11,
     "type": "task"
@@ -41,6 +45,7 @@
     "id": 111,
     "start": "2024-04-09 00:00:00",
     "text": "Presentation",
+    "details": "Room 410",
     "progress": 0,
     "parent": 11,
     "type": "milestone"
@@ -50,6 +55,7 @@
     "start": "2024-04-07 00:00:00",
     "end": "2024-04-12 00:00:00",
     "text": "Prototyping",
+    "details": "",
     "progress": 10,
     "parent": 11,
     "type": "task"
@@ -59,6 +65,7 @@
     "start": "2024-04-08 00:00:00",
     "end": "2024-04-17 00:00:00",
     "text": "User testing",
+    "details": "",
     "progress": 0,
     "parent": 11,
     "type": "task"
@@ -68,7 +75,8 @@
 		"id": 12,
 		"start": "2024-04-08 00:00:00",
 		"text": "Approval of strategy",
-		"progress": 100,
+		"details": "Room 405a",
+    "progress": 100,
 		"parent": 1,
 		"type": "milestone"
 	},
@@ -78,9 +86,10 @@
     "start": "2024-04-02 00:00:00",
     "end": "2024-04-12 00:00:00",
     "text": "Project management",
+    "details": "",
     "progress": 10,
     "parent": 0,
-    "type": "project",
+    "type": "summary",
     "open": true
   },
   {
@@ -88,6 +97,7 @@
     "start": "2024-04-02 00:00:00",
     "end": "2024-04-06 00:00:00",
     "text": "Resource planning",
+    "details": "",
     "progress": 10,
     "parent": 2,
     "type": "task"
@@ -97,6 +107,7 @@
     "start": "2024-04-06 00:00:00",
     "end": "2024-04-08 00:00:00",
     "text": "Getting approval",
+    "details": "",
     "progress": 10,
     "parent": 2,
     "type": "task"
@@ -106,6 +117,7 @@
     "start": "2024-04-08 00:00:00",
     "end": "2024-04-10 00:00:00",
     "text": "Team introduction",
+    "details": "Room 405a",
     "progress": 0,
     "parent": 2,
     "type": "task"
@@ -115,6 +127,7 @@
     "start": "2024-04-10 00:00:00",
     "end": "2024-04-12 00:00:00",
     "text": "Resource management",
+    "details": "",
     "progress": 10,
     "parent": 2,
     "type": "task"
@@ -125,9 +138,10 @@
     "start": "2024-04-09 00:00:00",
     "end": "2024-04-15 00:00:00",
     "text": "Development",
+    "details": "",
     "progress": 30,
     "parent": 0,
-    "type": "project",
+    "type": "summary",
     "lazy": true
   },
   {
@@ -135,6 +149,7 @@
     "start": "2024-04-09 00:00:00",
     "end": "2024-04-15 00:00:00",
     "text": "Prototyping",
+    "details": "",
     "progress": 3,
     "parent": 3,
     "type": "task"
@@ -144,6 +159,7 @@
     "start": "2024-04-15 00:00:00",
     "end": "2024-04-30 00:00:00",
     "text": "Basic functionality",
+    "details": "",
     "progress": 0,
     "parent": 3,
     "type": "task"
@@ -153,6 +169,7 @@
     "start": "2024-04-30 00:00:00",
     "end": "2024-05-15 00:00:00",
     "text": "Finalizing MVA",
+    "details": "",
     "progress": 0,
     "parent": 3,
     "type": "task"
@@ -163,9 +180,10 @@
     "start": "2024-04-09 00:00:00",
     "end": "2024-04-25 00:00:00",
     "text": "Testing",
+    "details": "",
     "progress": 3,
     "parent": 0,
-    "type": "project",
+    "type": "summary",
     "lazy": true
   },
   {
@@ -173,6 +191,7 @@
     "start": "2024-04-09 00:00:00",
     "end": "2024-04-15 00:00:00",
     "text": "Testing prototype",
+    "details": "",
     "progress": 3,
     "parent": 4,
     "type": "task"
@@ -182,6 +201,7 @@
     "start": "2024-04-15 00:00:00",
     "end": "2024-04-30 00:00:00",
     "text": "Testing basic features",
+    "details": "",
     "progress": 0,
     "parent": 4,
     "type": "task"
@@ -191,6 +211,7 @@
     "start": "2024-04-30 00:00:00",
     "end": "2024-05-15 00:00:00",
     "text": "Testing MVA",
+    "details": "",
     "progress": 0,
     "parent": 4,
     "type": "task"
@@ -200,6 +221,7 @@
     "start": "2024-05-15 00:00:00",
     "end": "2024-05-25 00:00:00",
     "text": "Beta testing",
+    "details": "",
     "progress": 0,
     "parent": 4,
     "type": "task"
@@ -209,6 +231,7 @@
     "id": 5,
     "start": "2024-05-25 00:00:00",
     "text": "Release 1.0.0",
+    "details": "Congrats, we did it",
     "progress": 0,
     "parent": 0,
     "type": "milestone"
