@@ -11,8 +11,6 @@ type JDate time.Time
 
 const layout = "2006-01-02 15:04:05"
 
-var nilTime = (time.Time{}).UnixNano()
-
 func (d *JDate) UnmarshalJSON(b []byte) (err error) {
 	s := strings.Trim(string(b), "\"")
 	if s == "null" {
@@ -29,10 +27,7 @@ func (d *JDate) UnmarshalJSON(b []byte) (err error) {
 }
 
 func (d *JDate) MarshalJSON() ([]byte, error) {
-	if d == nil {
-		return []byte("null"), nil
-	}
-	if time.Time(*d).UnixNano() == nilTime {
+	if d.IsZero() {
 		return []byte("null"), nil
 	}
 	return []byte(fmt.Sprintf("\"%s\"", time.Time(*d).Format(layout))), nil
@@ -50,4 +45,8 @@ func (d *JDate) Scan(src interface{}) error {
 
 	*d = JDate(t)
 	return nil
+}
+
+func (d *JDate) IsZero() bool {
+	return d == nil || time.Time(*d).IsZero()
 }

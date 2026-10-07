@@ -1,16 +1,16 @@
 [
-    {
+  {
     "id": 1,
     "source": 10,
     "target": 11,
-    "type":"e2s"
+    "type": "e2s"
   },
   {
-		"id": 2,
-		"source": 11,
-		"target": 12,
-		"type": "e2s"
-	},
+    "id": 2,
+    "source": 11,
+    "target": 12,
+    "type": "e2s"
+  },
   {
     "id": 3,
     "source": 110,
@@ -24,7 +24,7 @@
     "type": "e2s"
   },
   {
-    "id": 5, 
+    "id": 5,
     "source": 21,
     "target": 22,
     "type": "e2s"
@@ -39,6 +39,30 @@
     "id": 7,
     "source": 42,
     "target": 5,
+    "type": "e2s"
+  },
+  {
+    "id": 8,
+    "source": 112,
+    "target": 113,
+    "type": "e2s"
+  },
+  {
+    "id": 9,
+    "source": 30,
+    "target": 31,
+    "type": "e2s"
+  },
+  {
+    "id": 10,
+    "source": 31,
+    "target": 32,
+    "type": "e2s"
+  },
+  {
+    "id": 11,
+    "source": 32,
+    "target": 42,
     "type": "e2s"
   }
 ]

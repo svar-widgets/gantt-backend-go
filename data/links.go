@@ -15,6 +15,7 @@ type LinkUpdate struct {
 	Source common.FuzzyInt `json:"source"`
 	Target common.FuzzyInt `json:"target"`
 	Type   string          `json:"type"`
+	Lag    float64         `json:"lag"`
 }
 
 func NewLinksDAO(db *gorm.DB) *LinksDAO {
@@ -41,6 +42,18 @@ func (d *LinksDAO) GetAll() ([]Link, error) {
 func (d *LinksDAO) GetBranch(tasks []int) ([]Link, error) {
 	links := make([]Link, 0)
 	err := d.db.Where("source IN ? AND target IN ?", tasks, tasks).Find(&links).Error
+	if err != nil {
+		return nil, err
+	}
+	return links, err
+}
+
+func (d *LinksDAO) GetByTasks(tasks []int) ([]Link, error) {
+	links := make([]Link, 0)
+	if len(tasks) == 0 {
+		return links, nil
+	}
+	err := d.db.Where("source IN ? OR target IN ?", tasks, tasks).Find(&links).Error
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +89,8 @@ func (d *LinksDAO) DeleteBranch(tasks []int) error {
 	return err
 }
 
-func (d *LinksDAO) CopyBranch(old []int, new []int) error {
+func (d *LinksDAO) CopyBranch(old []int, new []int) ([]int, error) {
+	newIDs := make([]int, 0)
 	links, err := d.GetAll()
 	if err == nil {
 		sources := make([]Link, 0)
@@ -109,21 +123,25 @@ func (d *LinksDAO) CopyBranch(old []int, new []int) error {
 		toCopy = append(toCopy, targets...)
 
 		for _, link := range toCopy {
-			_, err = d.Add(LinkUpdate{
+			var newID int
+			newID, err = d.Add(LinkUpdate{
 				Source: common.FuzzyInt(link.Source),
 				Target: common.FuzzyInt(link.Target),
 				Type:   link.Type,
+				Lag:    link.Lag,
 			})
 			if err != nil {
 				break
 			}
+			newIDs = append(newIDs, newID)
 		}
 	}
-	return err
+	return newIDs, err
 }
 
 func (u *LinkUpdate) fillModel(model *Link) {
 	model.Source = int(u.Source)
 	model.Target = int(u.Target)
 	model.Type = u.Type
+	model.Lag = u.Lag
 }

@@ -1,17 +1,16 @@
 package main
 
 import (
-	"bytes"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"gantt-backend-go/data"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi"
 )
 
 func initRoutes(r chi.Router, dao *data.DAO) {
-
 	r.Get("/tasks", func(w http.ResponseWriter, r *http.Request) {
 		data, err := dao.Tasks.GetBranch(0)
 		sendResponse(w, data, err)
@@ -24,65 +23,38 @@ func initRoutes(r chi.Router, dao *data.DAO) {
 	})
 
 	r.Post("/tasks", func(w http.ResponseWriter, r *http.Request) {
-		task := data.TaskAddPayload{}
-		err := parseForm(w, r.Body, &task)
+		clientID := getClientID(r)
+		payload := data.TaskAddPayload{}
+		err := parseForm(w, r.Body, &payload)
 		if err != nil {
 			sendResponse(w, nil, err)
 			return
 		}
-		id, err := dao.Tasks.Add(task)
-		if task.Mode != "" {
-			err = dao.Tasks.Move(id, data.TaskUpdatePayload{
-				TaskUpdate: task.Task,
-				Mode:       task.Mode,
-				Target:     task.Target,
-			})
-			if err != nil {
-				sendResponse(w, nil, err)
-				return
-			}
-		}
-		sendResponse(w, &Response{id}, err)
+		result, err := OpTaskAdd(dao, payload)
+		sendResponse(w, &Response{ID: result.ID}, err)
+		hub.Broadcast(clientID, result.Events)
 	})
 
 	r.Put("/tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
+		clientID := getClientID(r)
 		id := numberParam(r, "id")
-		u := data.TaskUpdatePayload{}
-		err := parseForm(w, r.Body, &u)
+		payload := data.TaskUpdatePayload{}
+		err := parseForm(w, r.Body, &payload)
 		if err != nil {
 			sendResponse(w, nil, err)
 			return
 		}
-
-		if u.Operation == "copy" {
-			nids, err := copyTask(dao, id, u)
-			if err != nil {
-				sendResponse(w, nil, err)
-				return
-			}
-			sendResponse(w, &Response{ID: nids[0]}, err)
-			return
-		} else if u.Operation == "move" {
-			err = dao.Tasks.Move(id, u)
-			if err != nil {
-				sendResponse(w, nil, err)
-				return
-			}
-		} else {
-			err = dao.Tasks.Update(id, u)
-			if err != nil {
-				sendResponse(w, nil, err)
-				return
-			}
-		}
-
-		sendResponse(w, &Response{id}, err)
+		result, err := OpTaskUpdate(dao, id, payload)
+		sendResponse(w, &Response{ID: result.ID}, err)
+		hub.Broadcast(clientID, result.Events)
 	})
 
 	r.Delete("/tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
+		clientID := getClientID(r)
 		id := numberParam(r, "id")
-		err := deleteTask(dao, id)
+		result, err := OpTaskDelete(dao, id)
 		sendResponse(w, &Response{}, err)
+		hub.Broadcast(clientID, result.Events)
 	})
 
 	r.Get("/links", func(w http.ResponseWriter, r *http.Request) {
@@ -110,42 +82,47 @@ func initRoutes(r chi.Router, dao *data.DAO) {
 			sendResponse(w, nil, err)
 			return
 		}
-		tids := make([]int, 0)
-		tids = append(tids, id)
+		tids := make([]int, 0, len(tasks))
 		for _, t := range tasks {
 			tids = append(tids, t.ID)
 		}
-		data, err := dao.Links.GetBranch(tids)
+		data, err := dao.Links.GetByTasks(tids)
 		sendResponse(w, data, err)
 	})
 
 	r.Post("/links", func(w http.ResponseWriter, r *http.Request) {
-		data := data.LinkUpdate{}
-		err := parseForm(w, r.Body, &data)
+		clientID := getClientID(r)
+		payload := data.LinkUpdate{}
+		err := parseForm(w, r.Body, &payload)
 		if err != nil {
 			sendResponse(w, nil, err)
 			return
 		}
-		id, err := dao.Links.Add(data)
-		sendResponse(w, &Response{id}, err)
+		result, err := OpLinkAdd(dao, payload)
+		sendResponse(w, &Response{ID: result.ID}, err)
+		hub.Broadcast(clientID, result.Events)
 	})
 
 	r.Put("/links/{id}", func(w http.ResponseWriter, r *http.Request) {
+		clientID := getClientID(r)
 		id := numberParam(r, "id")
-		data := data.LinkUpdate{}
-		err := parseForm(w, r.Body, &data)
+		payload := data.LinkUpdate{}
+		err := parseForm(w, r.Body, &payload)
 		if err != nil {
 			sendResponse(w, nil, err)
 			return
 		}
-		err = dao.Links.Update(id, data)
-		sendResponse(w, &Response{id}, err)
+		result, err := OpLinkUpdate(dao, id, payload)
+		sendResponse(w, &Response{ID: result.ID}, err)
+		hub.Broadcast(clientID, result.Events)
 	})
 
 	r.Delete("/links/{id}", func(w http.ResponseWriter, r *http.Request) {
+		clientID := getClientID(r)
 		id := numberParam(r, "id")
-		err := dao.Links.Delete(id)
+		result, err := OpLinkDelete(dao, id)
 		sendResponse(w, &Response{}, err)
+		hub.Broadcast(clientID, result.Events)
 	})
 
 	r.Get("/resources", func(w http.ResponseWriter, r *http.Request) {
@@ -183,105 +160,106 @@ func initRoutes(r chi.Router, dao *data.DAO) {
 	})
 
 	r.Post("/assignments", func(w http.ResponseWriter, r *http.Request) {
-		data := data.AssignmentPayload{}
-		err := parseForm(w, r.Body, &data)
+		clientID := getClientID(r)
+		payload := data.AssignmentPayload{}
+		err := parseForm(w, r.Body, &payload)
 		if err != nil {
 			sendResponse(w, nil, err)
 			return
 		}
-
-		id, err := dao.Assignments.Add(data)
-		sendResponse(w, &Response{id}, err)
+		result, err := OpAssignmentAdd(dao, payload)
+		sendResponse(w, &Response{ID: result.ID}, err)
+		hub.Broadcast(clientID, result.Events)
 	})
 
 	r.Put("/assignments/{id}", func(w http.ResponseWriter, r *http.Request) {
+		clientID := getClientID(r)
 		id := numberParam(r, "id")
-		data := data.AssignmentPayload{}
-		err := parseForm(w, r.Body, &data)
+		payload := data.AssignmentPayload{}
+		err := parseForm(w, r.Body, &payload)
 		if err != nil {
 			sendResponse(w, nil, err)
 			return
 		}
-		err = dao.Assignments.Update(id, data)
-		sendResponse(w, &Response{id}, err)
+		result, err := OpAssignmentUpdate(dao, id, payload)
+		sendResponse(w, &Response{ID: result.ID}, err)
+		hub.Broadcast(clientID, result.Events)
 	})
 
 	r.Delete("/assignments/{id}", func(w http.ResponseWriter, r *http.Request) {
+		clientID := getClientID(r)
 		id := numberParam(r, "id")
-		err := dao.Assignments.Delete(id)
+		result, err := OpAssignmentDelete(dao, id)
 		sendResponse(w, &Response{}, err)
+		hub.Broadcast(clientID, result.Events)
 	})
 
 	r.Post("/batch", func(w http.ResponseWriter, r *http.Request) {
+		clientID := getClientID(r)
 		batch := []data.BatchItem{}
 		err := parseForm(w, r.Body, &batch)
 		if err != nil {
 			sendResponse(w, nil, err)
 			return
 		}
-
-		responses := make([]Response, 0, len(batch))
-		for _, d := range batch {
-			if d.Data == nil {
-				sendResponse(w, nil, errors.New("data is null"))
-				return
-			}
-
-			data, err := d.Data.MarshalJSON()
-			if err != nil {
-				sendResponse(w, nil, err)
-				return
-			}
-
-			req, err := http.NewRequest(d.Method, fmt.Sprintf("%s/%s", Config.Server.URL, d.Url), bytes.NewBuffer(data))
-			if err != nil {
-				sendResponse(w, nil, err)
-				return
-			}
-
-			resp, err := http.DefaultClient.Do(req)
-			if err != nil {
-				sendResponse(w, nil, err)
-				return
-			}
-			defer resp.Body.Close()
-
-			var response Response
-			if err = parseForm(w, resp.Body, &response); err != nil {
-				sendResponse(w, nil, err)
-				return
-			}
-
-			responses = append(responses, response)
-		}
-
-		sendResponse(w, responses, err)
+		responses, events := OpBatch(dao, batch)
+		sendResponse(w, responses, nil)
+		hub.Broadcast(clientID, events)
 	})
 
-}
-
-func copyTask(dao *data.DAO, id int, u data.TaskUpdatePayload) ([]int, error) {
-	ids, nids, err := dao.Tasks.Copy(id, u)
-	if err != nil {
-		return nil, err
-	}
-	if u.Lazy {
-		err = dao.Links.CopyBranch(ids[1:], nids[1:])
-		if err != nil {
-			return nil, err
+	r.Get("/events", func(w http.ResponseWriter, r *http.Request) {
+		clientID := r.URL.Query().Get("clientId")
+		if clientID == "" {
+			http.Error(w, "clientId is required", http.StatusBadRequest)
+			return
 		}
-	}
 
-	return nids, nil
+		stream := http.NewResponseController(w)
+
+		sub := hub.Connect(clientID)
+		defer hub.Disconnect(sub)
+
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, ":connected\n\n")
+		if err := stream.Flush(); err != nil {
+			return
+		}
+
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case event := <-sub.Events:
+				data, err := json.Marshal(event)
+				if err != nil {
+					continue
+				}
+				fmt.Fprintf(w, "data:%s\n\n", data)
+				if err := stream.Flush(); err != nil {
+					return
+				}
+			case <-ticker.C:
+				fmt.Fprint(w, ":ping\n\n")
+				if err := stream.Flush(); err != nil {
+					return
+				}
+			case <-sub.Done():
+				return
+			case <-r.Context().Done():
+				return
+			}
+		}
+	})
 }
 
-func deleteTask(dao *data.DAO, id int) error {
-	removed, err := dao.Tasks.Delete(id)
-	if err == nil {
-		err = dao.Links.DeleteBranch(removed)
-	}
-	if err == nil {
-		err = dao.Assignments.DeleteByTasks(removed)
-	}
-	return err
+// The client id only decides which browser tab skips its own echo. It is
+// supplied by the client, never verified, and must not be used for
+// authorization or to identify a user. In production derive identity from the
+// session and treat this purely as a per-tab correlation token.
+func getClientID(r *http.Request) string {
+	return r.Header.Get("X-Client-Id")
 }

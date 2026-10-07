@@ -13,6 +13,11 @@ type Response struct {
 	ID int `json:"id,omitempty"`
 }
 
+type BatchResponse struct {
+	ID    int    `json:"id,omitempty"`
+	Error string `json:"error,omitempty"`
+}
+
 func numberParam(r *http.Request, key string) int {
 	value := chi.URLParam(r, key)
 	num, _ := strconv.Atoi(value)

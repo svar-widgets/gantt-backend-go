@@ -11,9 +11,9 @@ type AssignmentsDAO struct {
 }
 
 type AssignmentPayload struct {
-	Resource int `json:"resource"`
-	Units    int `json:"units"`
-	Task     int `json:"task"`
+	Resource int     `json:"resource"`
+	Units    float64 `json:"units"`
+	Task     int     `json:"task"`
 }
 
 func NewAssignmentsDAO(db *gorm.DB) *AssignmentsDAO {
@@ -48,7 +48,7 @@ func (d *AssignmentsDAO) Add(data AssignmentPayload) (int, error) {
 	assignment := Assignment{}
 	data.fillModel(&assignment)
 	err := d.db.Create(&assignment).Error
-	
+
 	return assignment.ID, err
 }
 
